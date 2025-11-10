@@ -1,28 +1,36 @@
 const express = require("express");
+const connectDB = require("./config/database");
 const app = express();
+const User=require("./models/user");
 
-// app.use('/user',(req,res)=>{
-//     res.send("HAHHAHAHAHAH");
-// })
+app.post("/signup", async (req,res)=>{
+    //creating a new instance of the user model
+    const user=new User({
+        firstName:"Rahul",
+        lastName:"Ashok",
+        emailId:"rahulashok@gmail.com",
+        password:"ausr@1290"
 
-app.get("/user",(req,res)=>{
-    res.send({firstname:"Akshay",lastName:"Saini"});
+    });
+    
+    try{
+        await user.save();
+        res.send("user addded successfully");
+
+    }catch(err){
+        res.status(400).send("error saving the user:"+err.message);
+    }
+    
+
 })
 
-app.post("/user",(req,res)=>{
-    res.send("DATA SAVED TO DATA BASE");
-})
-
-app.patch("/user",(req,res)=>{
-    res.send("edit madtaa ediini");
-})
-
-app.delete("/user",(req,res)=>{
-    res.send("deleted user successfully");
-})
-
-
-
-app.listen("8080", ()=>{
-    console.log("connected to server");
-})
+connectDB()
+    .then(() => {
+        console.log("✅ Database connected brooo!");
+        app.listen(8080, () => {
+            console.log("🚀 Server is successfully listening to port 8080.");
+        });
+    })
+    .catch((err) => {
+        console.error("❌ Database cannot be established:", err);
+    });

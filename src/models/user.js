@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 const validator= require("validator");
 const jwt=require("jsonwebtoken");
 const bcrypt=require("bcrypt");
-const userSchema= new mongoose.Schema({
+const userSchema= new mongoose.Schema(
+    {
     firstName:{
         type:String,
         required:true,
@@ -41,12 +42,16 @@ const userSchema= new mongoose.Schema({
     },
     gender:{
         type:String,
-        validate(value){
-            if(!["male","female","others"].includes(value)){
-                throw new Error("gender data is not valid");
+        enum:{
+            values:["male","female","other"],
+            message:`{VALUE} is not a gender type`
+        },
+        // validate(value){
+        //     if(!["male","female","others"].includes(value)){
+        //         throw new Error("gender data is not valid");  instead of this we use enum
                 
-            }
-        }
+        //     }
+        // }
     },
     photoUrl:{
         type:String,
@@ -69,6 +74,9 @@ const userSchema= new mongoose.Schema({
 {
     timestamps:true,
 });
+
+userSchema.index({ firstName:1 });
+userSchema.index({ gender:1 });
 
 userSchema.methods.getJWT= async function(){
     const user=this;

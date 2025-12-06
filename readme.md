@@ -11,9 +11,11 @@ profileRouter
 - PATCH/profile/password
 
 connectionRequestRouter
-- POST/request/send/:status/:userId
+- POST/request/send/:status/:userId //for both interested and ignored
 - POST/request/review/accepted/:requestId
 - POST/request/review/rejected/:requestId
+-//instead of creating this 2 api we can create one apo
+- POST/request/review/:status/:requestId   //for both accepted and rejected
 
 userRouter
 - GET/user/connections
@@ -21,4 +23,4 @@ userRouter
 - GET/user/feed - Gets you the profiles of other users on platform
 
 
-Status:ignore,interested,accepted,rejected
+Status:ignored,interested,accepted,rejected

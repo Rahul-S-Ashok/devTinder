@@ -77,7 +77,7 @@ userRouter.get("/feed",userAuth , async(req,res)=>{
             $or:[{ fromUserId:loggedInUser._id },{ toUserId:loggedInUser._id }],
         }).select("fromUserId toUserId");
 
-        const hideUsersFromFeed= new Set();
+        const hideUsersFromFeed= new Set();  //only unique try by this function set()
         connectionRequests.forEach((req)=>{
             hideUsersFromFeed.add(req.fromUserId.toString());
             hideUsersFromFeed.add(req.toUserId.toString());

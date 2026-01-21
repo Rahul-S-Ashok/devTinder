@@ -4,12 +4,12 @@ const connectionRequestSchema = new mongoose.Schema(
   {
     fromUserId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref:"User",   //reference to the user collection
+      ref: "User",
       required: true,
     },
     toUserId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref:"User",
+      ref: "User",
       required: true,
     },
     status: {
@@ -26,11 +26,11 @@ const connectionRequestSchema = new mongoose.Schema(
   }
 );
 
-//ConnectionRequest,find({fromUserId:3272876862, toUserId:23892388623})
-connectionRequestSchema.index({fromUserId: 1, toUserId:1 }); //compound index
+// Compound index to prevent duplicate requests
+connectionRequestSchema.index({ fromUserId: 1, toUserId: 1 });
 
-// Prevent sending request to yourself // pre is like an event handler 
-connectionRequestSchema.pre("save", function (next) {  ///it should be normal func not arrow func
+// Prevent sending request to yourself
+connectionRequestSchema.pre("save", function (next) {
   const connectionRequest = this;
 
   if (connectionRequest.fromUserId.equals(connectionRequest.toUserId)) {

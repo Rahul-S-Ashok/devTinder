@@ -11,7 +11,7 @@ const app = express();
 // --------------------
 app.use(
   cors({
-    origin: "http://localhost:5173", // change later to domain
+    origin: "http://3.111.150.62", // frontend domain
     credentials: true,
   })
 );
@@ -22,29 +22,25 @@ app.use(cookieParser());
 // --------------------
 // Routes
 // --------------------
-const authRouter = require("./routes/auth");
-const profileRouter = require("./routes/profile");
-const requestRouter = require("./routes/request");
-const userRouter = require("./routes/user");
-
-app.use("/auth", authRouter);
-app.use("/profile", profileRouter);
-app.use("/request", requestRouter);
-app.use("/user", userRouter);
+app.use("/auth", require("./routes/auth"));
+app.use("/profile", require("./routes/profile"));
+app.use("/request", require("./routes/request"));
+app.use("/user", require("./routes/user"));
 
 // --------------------
-// Server + DB (CORRECT WAY)
+// Server + DB (CORRECT ORDER)
 // --------------------
 const PORT = process.env.PORT || 8080;
-
-app.listen(PORT, () => {
-  console.log("🚀 Server running on port", PORT);
-});
 
 connectDB()
   .then(() => {
     console.log("✅ Database connected");
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
   })
   .catch((err) => {
     console.error("❌ Database connection failed:", err.message);
+    process.exit(1);
   });

@@ -33,3 +33,11 @@ Pagination
 
 
 skip=(page-1)*limit
+
+frontend:http://3.111.150.62/
+backend:http://3.111.150.62.8080/
+
+Domain name=devTinder.com=> 3.111.150.62
+
+Frontend=devTinder.com
+Backend=devTinder.com:8080=>devTinder.com/api

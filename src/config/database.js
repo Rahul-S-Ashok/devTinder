@@ -1,8 +1,12 @@
 const mongoose = require("mongoose");
 
 const connectDB = async () => {
-  await mongoose.connect("mongodb+srv://rahulashok:rahulashok1234@cluster0.voxxk1z.mongodb.net/devtinderDB?retryWrites=true&w=majority&appName=Cluster0");
-  console.log("✅ MongoDB Atlas connected successfully!");
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("✅ MongoDB connected");
+  } catch (err) {
+    console.error("❌ MongoDB connection failed:", err.message);
+  }
 };
 
 module.exports = connectDB;

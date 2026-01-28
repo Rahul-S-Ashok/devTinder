@@ -11,7 +11,7 @@ const userAuth = async (req, res, next) => {
     }
 
     // 2️⃣ Verify token
-    const decodedObj = jwt.verify(token, "DEV@TINDER$1290");
+    const decodedObj = jwt.verify(token, process.env.JWT_SECRET);
 
     const { _id } = decodedObj;
 

@@ -36,7 +36,7 @@ connectDB()
   .then(() => {
     console.log("✅ Database connected");
 
-    app.listen(PORT, () => {
+    app.listen(process.env.PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
   })

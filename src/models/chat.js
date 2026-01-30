@@ -11,8 +11,12 @@ const messageSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    seen: {
+      type: Boolean,
+      default: false, // 👀 NEW
+    },
   },
-  { timestamps: true }
+  { timestamps: true } // createdAt will be used for TIME
 );
 
 const chatSchema = new mongoose.Schema({

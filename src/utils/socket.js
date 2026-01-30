@@ -1,12 +1,11 @@
 const socket = require("socket.io");
 const crypto = require("crypto");
 const { Chat } = require("../models/chat");
-const ConnectionRequest = require("../models/connectionRequest");
 
-const getSecretRoomId = (userId, targetUserId) => {
+const getSecretRoomId = (user1, user2) => {
   return crypto
     .createHash("sha256")
-    .update([userId, targetUserId].sort().join("$"))
+    .update([user1, user2].sort().join("$"))
     .digest("hex");
 };
 
@@ -18,47 +17,56 @@ const initializeSocket = (server) => {
   });
 
   io.on("connection", (socket) => {
-    socket.on("joinChat", ({ firstName, userId, targetUserId }) => {
+    // -------------------------------
+    // JOIN CHAT
+    // -------------------------------
+    socket.on("joinChat", ({ userId, targetUserId }) => {
       const roomId = getSecretRoomId(userId, targetUserId);
-      console.log(firstName + " joined Room : " + roomId);
       socket.join(roomId);
+      console.log("User joined room:", roomId);
     });
 
+    // -------------------------------
+    // SEND MESSAGE
+    // -------------------------------
     socket.on(
       "sendMessage",
-      async ({ firstName, lastName, userId, targetUserId, text }) => {
-        // Save messages to the database
+      async ({ senderId, targetUserId, text }) => {
         try {
-          const roomId = getSecretRoomId(userId, targetUserId);
-          console.log(firstName + " " + text);
-
-          // TODO: Check if userId & targetUserId are friends
+          const roomId = getSecretRoomId(senderId, targetUserId);
 
           let chat = await Chat.findOne({
-            participants: { $all: [userId, targetUserId] },
+            participants: { $all: [senderId, targetUserId] },
           });
 
           if (!chat) {
             chat = new Chat({
-              participants: [userId, targetUserId],
+              participants: [senderId, targetUserId],
               messages: [],
             });
           }
 
           chat.messages.push({
-            senderId: userId,
+            senderId, // ✅ FIXED
             text,
           });
 
           await chat.save();
-          io.to(roomId).emit("messageReceived", { firstName, lastName, text });
+
+          // send message to both users in room
+          io.to(roomId).emit("messageReceived", {
+            senderId,
+            text,
+          });
         } catch (err) {
-          console.log(err);
+          console.log("Chat save error:", err);
         }
       }
     );
 
-    socket.on("disconnect", () => {});
+    socket.on("disconnect", () => {
+      // optional
+    });
   });
 };
 

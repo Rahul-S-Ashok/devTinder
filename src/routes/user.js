@@ -1,8 +1,10 @@
 const express = require("express");
 const { userAuth } = require("../middlewares/auth");
 const userRouter = express.Router();
+
 const ConnectionRequest = require("../models/connectionRequest");
 const User = require("../models/user");
+const { Chat } = require("../models/chat");
 
 const USER_SAVE_DATA =
   "firstName lastName photoUrl age gender about skills";
@@ -26,7 +28,7 @@ userRouter.get("/requests/received", userAuth, async (req, res) => {
   }
 });
 
-// ======================= CONNECTIONS =======================
+// ======================= CONNECTIONS (NO RED DOT / NO UNREAD) =======================
 userRouter.get("/connections", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
@@ -40,20 +42,24 @@ userRouter.get("/connections", userAuth, async (req, res) => {
       .populate("fromUserId", USER_SAVE_DATA)
       .populate("toUserId", USER_SAVE_DATA);
 
-    const data = connectionRequests.map((row) => {
-      if (row.fromUserId._id.toString() === loggedInUser._id.toString()) {
-        return row.toUserId;
-      }
-      return row.fromUserId;
+    const connections = connectionRequests.map((row) => {
+      const otherUser =
+        row.fromUserId._id.toString() === loggedInUser._id.toString()
+          ? row.toUserId
+          : row.fromUserId;
+
+      return {
+        ...otherUser.toObject(),
+      };
     });
 
-    res.json({ data });
+    res.json({ data: connections });
   } catch (err) {
     res.status(400).send("ERROR: " + err.message);
   }
 });
 
-// ======================= FEED (🔥 FIXED 🔥) =======================
+// ======================= FEED =======================
 userRouter.get("/feed", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
@@ -63,7 +69,6 @@ userRouter.get("/feed", userAuth, async (req, res) => {
     limit = limit > 50 ? 50 : limit;
     const skip = (page - 1) * limit;
 
-    // 1️⃣ Find all requests involving logged-in user
     const connectionRequests = await ConnectionRequest.find({
       $or: [
         { fromUserId: loggedInUser._id },
@@ -71,7 +76,6 @@ userRouter.get("/feed", userAuth, async (req, res) => {
       ],
     }).select("fromUserId toUserId");
 
-    // 2️⃣ Build exclusion list (ALL STRINGS)
     const hideUsersFromFeed = new Set();
 
     connectionRequests.forEach((req) => {
@@ -79,10 +83,8 @@ userRouter.get("/feed", userAuth, async (req, res) => {
       hideUsersFromFeed.add(req.toUserId.toString());
     });
 
-    // Exclude self
     hideUsersFromFeed.add(loggedInUser._id.toString());
 
-    // 3️⃣ Fetch feed users
     const users = await User.find({
       _id: { $nin: Array.from(hideUsersFromFeed) },
     })

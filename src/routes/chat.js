@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const { userAuth } = require("../middlewares/auth");
 const { Chat } = require("../models/chat");
 
@@ -9,25 +10,7 @@ chatRouter.get("/chat/:targetUserId", userAuth, async (req, res) => {
   const userId = req.user._id;
 
   try {
-    // 🔥 MARK MESSAGES AS SEEN
-    await Chat.updateOne(
-      {
-        participants: { $all: [userId, targetUserId] },
-      },
-      {
-        $set: {
-          "messages.$[msg].seen": true,
-        },
-      },
-      {
-        arrayFilters: [
-          {
-            "msg.senderId": targetUserId,
-            "msg.seen": false,
-          },
-        ],
-      }
-    );
+    // ❌ REMOVED: seen / unread / red-dot logic completely
 
     let chat = await Chat.findOne({
       participants: { $all: [userId, targetUserId] },
@@ -36,7 +19,6 @@ chatRouter.get("/chat/:targetUserId", userAuth, async (req, res) => {
       select: "firstName lastName",
     });
 
-    // create chat if not exists
     if (!chat) {
       chat = new Chat({
         participants: [userId, targetUserId],

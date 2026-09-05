@@ -15,6 +15,32 @@ requestRouter.post(
       const fromUserId = req.user._id;
       const toUserId = req.params.toUserId;
       const status = req.params.status;
+  
+      let dailyLimit = Infinity;
+
+      if (!req.user.isPremium) {
+        dailyLimit = 20; // Free users
+      } else if (req.user.membershipType === "silver") {
+        dailyLimit = 100; // Silver users
+      }
+      // Gold users remain Infinity (unlimited)
+
+      if (status === "interested" && dailyLimit !== Infinity) {
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const requestsToday = await ConnectionRequest.countDocuments({
+          fromUserId,
+          status: "interested",
+          createdAt: { $gte: startOfDay },
+        });
+
+        if (requestsToday >= dailyLimit) {
+          return res.status(403).json({
+            message: `Daily request limit of ${dailyLimit} reached.`,
+          });
+        }
+      }
 
       const allowedStatus = ["ignored", "interested"];
       if (!allowedStatus.includes(status)) {
@@ -51,9 +77,19 @@ requestRouter.post(
 
       const data = await connectionRequest.save();
 
-      const emailRes= await sendEmail.run("A new friend request from " + req.user.firstName , `${req.user.firstName} is ${status} in ${toUser.firstName}`);
+      // const emailRes= await sendEmail.run("A new friend request from " + req.user.firstName , `${req.user.firstName} is ${status} in ${toUser.firstName}`);
 
-      console.log(emailRes);
+      // console.log(emailRes);
+      try {
+        const emailRes = await sendEmail.run(
+          "A new friend request from " + req.user.firstName,
+          `${req.user.firstName} is ${status} in ${toUser.firstName}`
+        );
+
+        console.log(emailRes);
+      } catch (emailError) {
+        console.error("Email failed:", emailError.message);
+      }
 
       return res.json({
         message: `${req.user.firstName} is ${status} in ${toUser.firstName}`,

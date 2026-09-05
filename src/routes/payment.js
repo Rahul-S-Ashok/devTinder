@@ -105,4 +105,31 @@ paymentRouter.get("/premium/verify", userAuth, async (req, res) => {
   return res.json({ ...user });
 });
 
+paymentRouter.post("/verify", userAuth, async (req, res) => {
+  try {
+    const {
+        membershipType,
+        razorpay_payment_id,
+        razorpay_order_id,
+        razorpay_signature,
+      } = req.body;
+
+    const user = req.user;
+
+    user.isPremium = true;
+    user.membershipType = membershipType;
+
+    await user.save();
+
+    res.json({
+      message: "Premium Activated",
+      user,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+});
+
 module.exports = paymentRouter;

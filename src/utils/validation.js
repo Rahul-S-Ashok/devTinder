@@ -7,12 +7,12 @@ const validateSignUpData = (req) => {
     throw new Error("Name is not valid");
   }
 
-  // ✅ Throw error when email is NOT valid
+  //  Throw error when email is NOT valid
   if (!validator.isEmail(emailId)) {
     throw new Error("Email is not valid");
   }
 
-  // ✅ Throw error when password is NOT strong
+  //  Throw error when password is NOT strong
   if (!validator.isStrongPassword(password)) {
     throw new Error("Please enter a strong password (use uppercase, lowercase, number, and symbol)");
   }
